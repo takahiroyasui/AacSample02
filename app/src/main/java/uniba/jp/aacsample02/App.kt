@@ -18,6 +18,6 @@ class App : Application() {
             Timber.plant(Timber.DebugTree())
         }
 
-        App.database = Room.databaseBuilder(this, MyDatabase::class.java, "we-need-db").build()
+        App.database = Room.databaseBuilder(this, MyDatabase::class.java, "database-name").build()
     }
 }
