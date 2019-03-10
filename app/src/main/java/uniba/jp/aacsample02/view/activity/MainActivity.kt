@@ -9,10 +9,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.view.*
 import timber.log.Timber
 import uniba.jp.aacsample02.R
@@ -26,7 +22,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var viewManager: LinearLayoutManager
-    private val compositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,8 +45,9 @@ class MainActivity : AppCompatActivity() {
                     setView(editText)
                     setPositiveButton("OK") { _, _ ->
                         val newName = editText.text.toString()
-                        Timber.d("%d - %s - %d", data.uid, newName, position)
-                        viewModel.updateUser(data.uid!!, newName, position)
+                        Timber.d("更新: %d - %s - %d", data.uid, newName, position)
+                        data.name = newName
+                        viewModel.updateUser(data, position)
                     }
                     setNegativeButton("Cancel") { _, _ -> Timber.d("Cancel") }
                     show()
@@ -66,7 +62,8 @@ class MainActivity : AppCompatActivity() {
                 AlertDialog.Builder(this@MainActivity).apply {
                     setMessage(data.name + " を削除しますか？")
                     setPositiveButton("OK") { _, _ ->
-                        viewModel.deleteUser(data.uid!!, position)
+                        Timber.d("削除: %d - %s - %d", data.uid, data.name, position)
+                        viewModel.deleteUser(data.uid, position)
                     }
                     setNegativeButton("Cancel") { _, _ -> Timber.d("Cancel") }
                     show()
@@ -78,9 +75,16 @@ class MainActivity : AppCompatActivity() {
             if ((event.action == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER) && binding.toolbar.edit_text.text.isNotEmpty()) {
                 val name = binding.toolbar.edit_text.text.toString()
                 binding.toolbar.edit_text.text.clear()
+
                 viewModel.addData(name)
             }
             false
+        }
+
+        binding.recyclerView.apply {
+            setHasFixedSize(true)
+            layoutManager = viewManager
+            adapter = viewModel.getViewAdapter()
         }
     }
 
@@ -89,20 +93,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         viewModel.clear()
-
         viewModel.getUsers()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ users ->
-                viewModel.setUsers(users)
-
-                binding.recyclerView.apply {
-                    setHasFixedSize(true)
-                    layoutManager = viewManager
-                    adapter = viewModel.getViewAdapter()
-                }
-
-            }, Timber::e)
-            .addTo(compositeDisposable)
     }
 }

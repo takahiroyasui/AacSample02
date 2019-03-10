@@ -69,4 +69,8 @@ class UserRvAdapter(private val myDataSet: ArrayList<User>) :
     fun updateItem(position: Int) {
         notifyItemChanged(position)
     }
+
+    fun removeItem(index: Int) {
+        notifyItemRemoved(index)
+    }
 }

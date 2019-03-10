@@ -26,51 +26,57 @@ class MainActivityViewModel : ViewModel(), LifecycleObserver {
         val startIndex = viewAdapter.itemCount
         val user = User(name = name)
 
-        Completable.fromAction { App.database.userDao().insert(user) }
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe()
-
-        listData.add(user)
-        viewAdapter.addData(startIndex, 1)
-    }
-
-    fun getUsers(): Single<List<User>> {
-        return Single.create { emitter ->  emitter.onSuccess( App.database.userDao().getUsers()) }
-    }
-
-    fun setUsers(users: List<User>) {
-        listData.addAll(users)
-        viewAdapter.addData(viewAdapter.itemCount, users.size)
-    }
-
-    fun updateUser(id: Long, name: String, position: Int) {
-        Completable.fromAction { App.database.userDao().update(id, name) }
+        Single.fromCallable<Long> { App.database.userDao().insert(user) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
+                    Timber.d("id: %d", it)
+                    user.uid = it
+                    listData.add(user)
+                    viewAdapter.addData(startIndex, 1)
+                }, Timber::e)
+                .addTo(compositeDisposable)
+    }
+
+    fun getUsers() {
+        Single.fromCallable<List<User>> { App.database.userDao().getUsers() }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ users ->
+                    listData.addAll(users)
+                    viewAdapter.addData(viewAdapter.itemCount, users.size)
+                }, Timber::e)
+                .addTo(compositeDisposable)
+    }
+
+    fun updateUser(user: User, position: Int) {
+        Timber.d("update user:[%d] - %s - %d", user.uid, user.name, position)
+
+        Completable.fromAction { App.database.userDao().update(user.uid, user.name) }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    listData[position] = user
                     viewAdapter.updateItem(position)
                 }, Timber::e)
                 .addTo(compositeDisposable)
     }
 
     fun deleteUser(id: Long, position: Int) {
+        Timber.d("delete user:[%d] - %d", id, position)
+
         Completable.fromAction { App.database.userDao().delete(id) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    viewAdapter.updateItem(position)
+                    listData.removeAt(position)
+                    viewAdapter.removeItem(position)
                 }, Timber::e)
                 .addTo(compositeDisposable)
     }
 
-
-    fun update() {
-        viewAdapter.update()
-    }
-
     fun clear() {
         listData.clear()
-        update()
+        viewAdapter.update()
     }
 }
