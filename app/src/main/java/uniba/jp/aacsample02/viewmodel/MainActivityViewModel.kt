@@ -29,9 +29,9 @@ class MainActivityViewModel : ViewModel(), LifecycleObserver {
         Single.fromCallable<Long> { App.database.userDao().insert(user) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    Timber.d("id: %d", it)
-                    user.uid = it
+                .subscribe({ id ->
+                    Timber.d("id: %d", id)
+                    user.uid = id
                     listData.add(user)
                     viewAdapter.addData(startIndex, 1)
                 }, Timber::e)
