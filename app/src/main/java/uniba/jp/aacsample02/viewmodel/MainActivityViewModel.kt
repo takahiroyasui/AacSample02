@@ -79,4 +79,10 @@ class MainActivityViewModel : ViewModel(), LifecycleObserver {
         listData.clear()
         viewAdapter.update()
     }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    fun onStop() {
+        Timber.d("onStop")
+        compositeDisposable.clear()
+    }
 }
