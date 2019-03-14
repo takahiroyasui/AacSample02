@@ -30,6 +30,7 @@ class UserRvAdapter(private val myDataSet: ArrayList<User>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.itemView.name.text = myDataSet[position].name
 
+        // TODO: アイテムを削除したときに最終行をタップするとIndexOutOfBoundsException
         holder.itemView.setOnClickListener {
             listener.onClick(it, myDataSet[position])
         }
