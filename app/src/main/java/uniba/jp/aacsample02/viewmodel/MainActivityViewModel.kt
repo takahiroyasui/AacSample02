@@ -26,7 +26,7 @@ class MainActivityViewModel : ViewModel(), LifecycleObserver {
         val startIndex = viewAdapter.itemCount
         val user = User(name = name)
 
-        Single.fromCallable<Long> { App.database.userDao().insert(user) }
+        App.database.userDao().insert(user)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ id ->
@@ -39,7 +39,7 @@ class MainActivityViewModel : ViewModel(), LifecycleObserver {
     }
 
     fun getUsers() {
-        Single.fromCallable<List<User>> { App.database.userDao().getUsers() }
+        App.database.userDao().getUsers()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ users ->
