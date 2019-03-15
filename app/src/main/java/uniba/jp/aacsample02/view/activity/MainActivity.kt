@@ -48,8 +48,7 @@ class MainActivity : AppCompatActivity() {
                     setPositiveButton("OK") { _, _ ->
                         val newName = editText.text.toString()
                         Timber.d("更新: %d - %s - %d", data.uid, newName, position)
-                        data.name = newName
-                        viewModel.updateUser(data, position)
+                        viewModel.updateUser(data.uid, newName)
                     }
                     setNegativeButton("Cancel") { _, _ -> Timber.d("Cancel") }
                     show()
@@ -89,6 +88,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         viewModel.getUsers().observe(this, Observer {
+            Timber.d("==== UPDATE ====")
             viewAdapter.setData(it)
         })
     }

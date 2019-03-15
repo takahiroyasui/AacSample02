@@ -32,10 +32,10 @@ class MainActivityViewModel : ViewModel(), LifecycleObserver {
         return App.database.userDao().getUsers()
     }
 
-    fun updateUser(user: User, position: Int) {
-        Timber.d("update user:[%d] - %s - %d", user.uid, user.name, position)
+    fun updateUser(uid: Long, name: String) {
+        Timber.d("update user:[%d] - %s", uid, name)
 
-        Completable.fromAction { App.database.userDao().update(user.uid, user.name) }
+        Completable.fromAction { App.database.userDao().update(uid, name) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({}, Timber::e)

@@ -8,13 +8,14 @@ import kotlinx.android.synthetic.main.item_view.view.*
 import uniba.jp.aacsample02.R
 import uniba.jp.aacsample02.models.User
 import androidx.recyclerview.widget.DiffUtil
+import timber.log.Timber
 
 
 class UserRvAdapter : RecyclerView.Adapter<UserRvAdapter.ViewHolder>() {
 
     private lateinit var listener: OnItemClickListener
     private lateinit var longListener: OnItemLongClickListener
-    private var listData: ArrayList<User> = ArrayList()
+    private val listData: ArrayList<User> = ArrayList()
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
@@ -45,6 +46,11 @@ class UserRvAdapter : RecyclerView.Adapter<UserRvAdapter.ViewHolder>() {
     override fun getItemCount() = listData.size
 
     fun setData(newData: List<User>) {
+        Timber.d("**** setData ****")
+
+        listData.map { user -> Timber.d(user.name) }
+
+        Timber.d("---")
         val postDiffCallback = PostDiffCallback(listData, newData)
         val diffResult = DiffUtil.calculateDiff(postDiffCallback)
 
@@ -70,22 +76,26 @@ class UserRvAdapter : RecyclerView.Adapter<UserRvAdapter.ViewHolder>() {
     }
 
 
-    class PostDiffCallback(private val oldPosts: List<User>, private val newPosts: List<User>) : DiffUtil.Callback() {
+    class PostDiffCallback(private val old: List<User>, private val new: List<User>) : DiffUtil.Callback() {
 
         override fun getOldListSize(): Int {
-            return oldPosts.size
+            return old.size
         }
 
         override fun getNewListSize(): Int {
-            return newPosts.size
+            return new.size
         }
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldPosts[oldItemPosition].uid == newPosts[newItemPosition].uid
+            val result = old[oldItemPosition].name == new[newItemPosition].name
+            Timber.d("areItemsTheSame: %s - %s - %s", result, old[oldItemPosition].name, new[newItemPosition].name)
+            return result
         }
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldPosts[oldItemPosition] == newPosts[newItemPosition]
+            val result = old[oldItemPosition] == new[newItemPosition]
+            Timber.d("areContentsTheSame: %s", result)
+            return result
         }
     }
 }
