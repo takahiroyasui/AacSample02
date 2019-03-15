@@ -32,7 +32,6 @@ class UserRvAdapter : RecyclerView.Adapter<UserRvAdapter.ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.itemView.name.text = "[" + listData[position].uid + "] - " + listData[position].name
 
-        // TODO: アイテムを削除したときに最終行をタップするとIndexOutOfBoundsException
         holder.itemView.setOnClickListener {
             listener.onClick(it, listData[position])
         }
@@ -46,17 +45,14 @@ class UserRvAdapter : RecyclerView.Adapter<UserRvAdapter.ViewHolder>() {
     override fun getItemCount() = listData.size
 
     fun setData(newData: List<User>) {
-        Timber.d("**** setData ****")
 
-        listData.map { user -> Timber.d(user.name) }
-
-        Timber.d("---")
         val postDiffCallback = PostDiffCallback(listData, newData)
         val diffResult = DiffUtil.calculateDiff(postDiffCallback)
 
         listData.clear()
         listData.addAll(newData)
         diffResult.dispatchUpdatesTo(this)
+        notifyDataSetChanged()
     }
 
     interface OnItemClickListener {
@@ -74,7 +70,6 @@ class UserRvAdapter : RecyclerView.Adapter<UserRvAdapter.ViewHolder>() {
     fun setOnItemLongClickListener(listener: OnItemLongClickListener) {
         this.longListener = listener
     }
-
 
     class PostDiffCallback(private val old: List<User>, private val new: List<User>) : DiffUtil.Callback() {
 
