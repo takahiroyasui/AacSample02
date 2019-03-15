@@ -7,13 +7,14 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.item_view.view.*
 import uniba.jp.aacsample02.R
 import uniba.jp.aacsample02.models.User
+import androidx.recyclerview.widget.DiffUtil
 
 
-class UserRvAdapter(private val myDataSet: ArrayList<User>) :
-        RecyclerView.Adapter<UserRvAdapter.ViewHolder>() {
+class UserRvAdapter : RecyclerView.Adapter<UserRvAdapter.ViewHolder>() {
 
     private lateinit var listener: OnItemClickListener
     private lateinit var longListener: OnItemLongClickListener
+    private var listData: ArrayList<User> = ArrayList()
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
@@ -28,20 +29,29 @@ class UserRvAdapter(private val myDataSet: ArrayList<User>) :
 
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.itemView.name.text = myDataSet[position].name
+        holder.itemView.name.text = "[" + listData[position].uid + "] - " + listData[position].name
 
         // TODO: アイテムを削除したときに最終行をタップするとIndexOutOfBoundsException
         holder.itemView.setOnClickListener {
-            listener.onClick(it, myDataSet[position])
+            listener.onClick(it, listData[position])
         }
 
         holder.itemView.setOnLongClickListener {
-            longListener.onLongClick(it, myDataSet[position])
+            longListener.onLongClick(it, listData[position])
             return@setOnLongClickListener true
         }
     }
 
-    override fun getItemCount() = myDataSet.size
+    override fun getItemCount() = listData.size
+
+    fun setData(newData: List<User>) {
+        val postDiffCallback = PostDiffCallback(listData, newData)
+        val diffResult = DiffUtil.calculateDiff(postDiffCallback)
+
+        listData.clear()
+        listData.addAll(newData)
+        diffResult.dispatchUpdatesTo(this)
+    }
 
     interface OnItemClickListener {
         fun onClick(view: View, data: User)
@@ -59,19 +69,23 @@ class UserRvAdapter(private val myDataSet: ArrayList<User>) :
         this.longListener = listener
     }
 
-    fun addData(start : Int, count: Int) {
-        notifyItemRangeInserted(start, count)
-    }
 
-    fun update() {
-        notifyDataSetChanged()
-    }
+    class PostDiffCallback(private val oldPosts: List<User>, private val newPosts: List<User>) : DiffUtil.Callback() {
 
-    fun updateItem(position: Int) {
-        notifyItemChanged(position)
-    }
+        override fun getOldListSize(): Int {
+            return oldPosts.size
+        }
 
-    fun removeItem(index: Int) {
-        notifyItemRemoved(index)
+        override fun getNewListSize(): Int {
+            return newPosts.size
+        }
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldPosts[oldItemPosition].uid == newPosts[newItemPosition].uid
+        }
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldPosts[oldItemPosition] == newPosts[newItemPosition]
+        }
     }
 }

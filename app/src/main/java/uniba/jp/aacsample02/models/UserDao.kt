@@ -1,5 +1,6 @@
 package uniba.jp.aacsample02.models
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
@@ -9,7 +10,7 @@ import io.reactivex.Single
 interface UserDao {
 
     @Query("SELECT * FROM user")
-    fun getUsers(): Single<List<User>>
+    fun getUsers(): LiveData<List<User>>
 
     @Insert
     fun insert(user: User): Single<Long>

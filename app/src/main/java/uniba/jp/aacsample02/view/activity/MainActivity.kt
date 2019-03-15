@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.view.*
@@ -34,8 +35,9 @@ class MainActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
 
         viewManager = LinearLayoutManager(this)
+        val viewAdapter = UserRvAdapter()
 
-        viewModel.getViewAdapter().setOnItemClickListener(object: UserRvAdapter.OnItemClickListener {
+        viewAdapter.setOnItemClickListener(object: UserRvAdapter.OnItemClickListener {
             override fun onClick(view: View, data: User) {
                 val editText = EditText(this@MainActivity)
                 val position= binding.recyclerView.getChildAdapterPosition(view)
@@ -55,7 +57,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        viewModel.getViewAdapter().setOnItemLongClickListener(object: UserRvAdapter.OnItemLongClickListener {
+        viewAdapter.setOnItemLongClickListener(object: UserRvAdapter.OnItemLongClickListener {
             override fun onLongClick(view: View, data: User) {
                 val position= binding.recyclerView.getChildAdapterPosition(view)
 
@@ -75,7 +77,6 @@ class MainActivity : AppCompatActivity() {
             if ((event.action == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER) && binding.toolbar.edit_text.text.isNotEmpty()) {
                 val name = binding.toolbar.edit_text.text.toString()
                 binding.toolbar.edit_text.text.clear()
-
                 viewModel.addData(name)
             }
             false
@@ -84,15 +85,16 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.apply {
             setHasFixedSize(true)
             layoutManager = viewManager
-            adapter = viewModel.getViewAdapter()
+            adapter = viewAdapter
         }
+
+        viewModel.getUsers().observe(this, Observer {
+            viewAdapter.setData(it)
+        })
     }
 
     override fun onResume() {
         Timber.d("onResume")
         super.onResume()
-
-        viewModel.clear()
-        viewModel.getUsers()
     }
 }

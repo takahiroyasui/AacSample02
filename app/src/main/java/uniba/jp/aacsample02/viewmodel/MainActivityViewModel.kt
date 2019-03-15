@@ -14,39 +14,22 @@ import uniba.jp.aacsample02.view.adapter.UserRvAdapter
 
 class MainActivityViewModel : ViewModel(), LifecycleObserver {
 
-    private val listData: ArrayList<User> = ArrayList()
-    private val viewAdapter: UserRvAdapter = UserRvAdapter(listData)
     private val compositeDisposable = CompositeDisposable()
 
-    fun getViewAdapter(): UserRvAdapter {
-        return viewAdapter
-    }
-
     fun addData(name: String) {
-        val startIndex = viewAdapter.itemCount
         val user = User(name = name)
 
         App.database.userDao().insert(user)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ id ->
-                    Timber.d("id: %d", id)
-                    user.uid = id
-                    listData.add(user)
-                    viewAdapter.addData(startIndex, 1)
-                }, Timber::e)
+                .subscribe({}, Timber::e)
                 .addTo(compositeDisposable)
     }
 
-    fun getUsers() {
-        App.database.userDao().getUsers()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ users ->
-                    listData.addAll(users)
-                    viewAdapter.addData(viewAdapter.itemCount, users.size)
-                }, Timber::e)
-                .addTo(compositeDisposable)
+
+
+    fun getUsers(): LiveData<List<User>> {
+        return App.database.userDao().getUsers()
     }
 
     fun updateUser(user: User, position: Int) {
@@ -55,10 +38,7 @@ class MainActivityViewModel : ViewModel(), LifecycleObserver {
         Completable.fromAction { App.database.userDao().update(user.uid, user.name) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    listData[position] = user
-                    viewAdapter.updateItem(position)
-                }, Timber::e)
+                .subscribe({}, Timber::e)
                 .addTo(compositeDisposable)
     }
 
@@ -68,16 +48,8 @@ class MainActivityViewModel : ViewModel(), LifecycleObserver {
         Completable.fromAction { App.database.userDao().delete(id) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    listData.removeAt(position)
-                    viewAdapter.removeItem(position)
-                }, Timber::e)
+                .subscribe({}, Timber::e)
                 .addTo(compositeDisposable)
-    }
-
-    fun clear() {
-        listData.clear()
-        viewAdapter.update()
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
